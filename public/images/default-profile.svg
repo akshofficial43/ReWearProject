@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="100" fill="#6b7280"/>
+  
+  <!-- Avatar silhouette -->
+  <g fill="#e5e7eb">
+    <!-- Head -->
+    <circle cx="100" cy="75" r="35"/>
+    
+    <!-- Body/shoulders -->
+    <ellipse cx="100" cy="170" rx="65" ry="50"/>
+  </g>
+</svg>
