@@ -36,6 +36,8 @@ class User extends Authenticatable
         'address',
         'role',
         'profile_image',
+        'otp',
+        'otp_verified',
     ];
 
     /**
@@ -56,6 +58,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'otp_verified' => 'boolean',
     ];
 
     /**

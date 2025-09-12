@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -11,6 +10,43 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    /**
+     * Handle OTP verification.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function verifyOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'otp' => ['required', 'digits:6'],
+            'email' => ['required', 'email'],
+        ]);
+
+        $email = $validated['email'];
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return redirect()->route('register')
+                ->with('otp_required', true)
+                ->with('email', $email)
+                ->with('error', 'We could not find that user. Please register again.');
+        }
+
+        if ((string)$user->otp === (string)$validated['otp']) {
+            $user->otp_verified = true;
+            $user->otp = null;
+            $user->save();
+
+            Auth::login($user);
+            return redirect()->route('home')->with('success', 'OTP verified! Registration complete.');
+        }
+
+        return redirect()->route('register')
+            ->with('otp_required', true)
+            ->with('email', $email)
+            ->withErrors(['otp' => 'Invalid OTP. Please try again.']);
+    }
     /**
      * Show the registration form.
      *
@@ -55,6 +91,9 @@ class AuthController extends Controller
             'phone' => $request->phone,
         ];
 
+        // Generate OTP
+        $otp = rand(100000, 999999);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -62,11 +101,22 @@ class AuthController extends Controller
             'address' => json_encode($addressData),
             'role' => 'user', // Default role
             'profile_image' => $profileImagePath,
+            'otp' => $otp,
+            'otp_verified' => false,
         ]);
 
-        Auth::login($user);
+        // Send OTP email
+        try {
+            \Mail::raw('Your OTP code is: ' . $otp, function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Your ReWear OTP Code');
+            });
+        } catch (\Exception $e) {
+            // Optionally handle mail errors
+        }
 
-        return redirect()->route('home')->with('success', 'Registration successful! Welcome to ReWear.');
+        // Redirect to OTP verification form
+        return redirect()->route('register')->with('otp_required', true)->with('email', $user->email);
     }
 
     /**
