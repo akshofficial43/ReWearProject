@@ -39,6 +39,7 @@
                         {{ $errors->first('otp') }}
                     </div>
                 @endif
+
         @else
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
